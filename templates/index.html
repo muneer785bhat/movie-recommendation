@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>MovieAI - AI Movie Recommendation System</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     NAVIGATION
+     ===================================================== -->
+
+<nav class="navbar">
+
+    <div class="nav-logo">
+        🎬 <span>MovieAI</span>
+    </div>
+
+    <div class="nav-links">
+
+        <a href="#trending">
+            🔥 Trending
+        </a>
+
+        <a href="#recommendations">
+            🤖 Recommendations
+        </a>
+
+        <a href="#analytics">
+            📊 Analytics
+        </a>
+
+        <a href="#watchlist">
+            ❤️ Watchlist
+        </a>
+
+    </div>
+
+</nav>
+
+
+
+<main>
+
+
+<!-- =====================================================
+     HERO
+     ===================================================== -->
+
+<section class="hero">
+
+    <div class="hero-content">
+
+        <div class="hero-badge">
+            ✨ AI Powered Movie Discovery
+        </div>
+
+        <h1>
+            Find your next
+            <span>favorite movie.</span>
+        </h1>
+
+        <p>
+            MovieAI uses machine learning,
+            movie ratings and popularity to
+            discover movies you'll love.
+        </p>
+
+
+        <!-- SEARCH -->
+
+        <form
+            method="POST"
+            class="search-box"
+        >
+
+            <div class="search-container">
+
+                <input
+                    type="text"
+                    id="movie-search"
+                    name="movie"
+                    placeholder="Search for a movie..."
+                    value="{{ movie }}"
+                    autocomplete="off"
+                    required
+                >
+
+                <div
+                    id="search-results"
+                    class="search-results"
+                ></div>
+
+            </div>
+
+
+            <button type="submit">
+                🔍 Recommend
+            </button>
+
+        </form>
+
+    </div>
+
+</section>
+
+
+
+<div class="container">
+
+
+<!-- =====================================================
+     TRENDING
+     ===================================================== -->
+
+{% if trending_movies and not recommendations %}
+
+<section
+    id="trending"
+    class="movie-section"
+>
+
+    <div class="section-header">
+
+        <div>
+
+            <span class="section-label">
+                DISCOVER
+            </span>
+
+            <h2>
+                🔥 Trending Movies
+            </h2>
+
+        </div>
+
+
+        <a
+            href="/trending"
+            class="view-all"
+        >
+            View All →
+        </a>
+
+    </div>
+
+
+    <div class="movies">
+
+        {% for movie in trending_movies %}
+
+        <div
+            class="movie-card"
+            data-movie-id="{{ movie.id }}"
+        >
+
+            {% if movie.poster_path %}
+
+            <img
+                src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}"
+                alt="{{ movie.title }}"
+                class="movie-poster"
+            >
+
+            {% else %}
+
+            <div class="no-poster">
+                🎬
+                <span>No Poster</span>
+            </div>
+
+            {% endif %}
+
+
+            <div class="movie-info">
+
+                <h3>
+                    {{ movie.title }}
+                </h3>
+
+
+                <div class="rating">
+                    ⭐ {{ movie.vote_average|round(1) }}
+                </div>
+
+
+                {% if movie.release_date %}
+
+                <p class="year">
+                    📅 {{ movie.release_date[:4] }}
+                </p>
+
+                {% endif %}
+
+
+                {% if movie.overview %}
+
+                <p class="overview">
+                    {{ movie.overview[:120] }}...
+                </p>
+
+                {% endif %}
+
+            </div>
+
+
+            <button
+                type="button"
+                class="watchlist-btn"
+                data-movie-id="{{ movie.id }}"
+                data-movie-title="{{ movie.title }}"
+            >
+                ♡ Add to Watchlist
+            </button>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+{% endif %}
+
+
+
+<!-- =====================================================
+     ANALYTICS
+     ===================================================== -->
+
+<section
+    id="analytics"
+    class="analytics-section"
+>
+
+    <div class="section-header">
+
+        <div>
+
+            <span class="section-label">
+                DATA SCIENCE
+            </span>
+
+            <h2>
+                📊 Movie Analytics
+            </h2>
+
+            <p class="section-description">
+                Insights extracted from the movie dataset.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- STAT CARDS -->
+
+    <div class="stats-grid">
+
+        <div class="stat-card">
+
+            <div class="stat-icon">
+                🎬
+            </div>
+
+            <div>
+
+                <span class="stat-label">
+                    Total Movies
+                </span>
+
+                <strong>
+                    {{ stats.total_movies }}
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <div class="stat-icon">
+                ⭐
+            </div>
+
+            <div>
+
+                <span class="stat-label">
+                    Average Rating
+                </span>
+
+                <strong>
+                    {{ stats.average_rating }}/10
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <div class="stat-icon">
+                🔥
+            </div>
+
+            <div>
+
+                <span class="stat-label">
+                    Most Popular
+                </span>
+
+                <strong>
+                    {{ stats.most_popular_movie }}
+                </strong>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ANALYTICS GRID -->
+
+    <div class="analytics-grid">
+
+
+        <!-- TOP GENRES -->
+
+        <div class="analytics-card">
+
+            <h3>
+                🎭 Top Genres
+            </h3>
+
+            {% for genre in stats.top_genres %}
+
+            <div class="bar-row">
+
+                <div class="bar-info">
+
+                    <span>
+                        {{ genre.name }}
+                    </span>
+
+                    <span>
+                        {{ genre.count }}
+                    </span>
+
+                </div>
+
+                <div class="bar">
+
+                    <div
+                        class="bar-fill"
+                        style="width: {{ (genre.count / stats.top_genres[0].count * 100)|round }}%"
+                    ></div>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+
+
+        <!-- RATING DISTRIBUTION -->
+
+        <div class="analytics-card">
+
+            <h3>
+                ⭐ Rating Distribution
+            </h3>
+
+            {% for rating in stats.rating_distribution %}
+
+            <div class="bar-row">
+
+                <div class="bar-info">
+
+                    <span>
+                        {{ rating.label }}
+                    </span>
+
+                    <span>
+                        {{ rating.count }}
+                    </span>
+
+                </div>
+
+                <div class="bar">
+
+                    <div
+                        class="bar-fill"
+                        style="width: {{ (rating.count / stats.total_movies * 100)|round }}%"
+                    ></div>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+
+
+        <!-- POPULAR MOVIES -->
+
+        <div class="analytics-card popular-analytics">
+
+            <h3>
+                🔥 Most Popular Movies
+            </h3>
+
+            {% for movie in stats.top_movies %}
+
+            <div class="popular-row">
+
+                <span class="rank">
+                    #{{ loop.index }}
+                </span>
+
+                <div class="popular-info">
+
+                    <strong>
+                        {{ movie.title }}
+                    </strong>
+
+                    <small>
+                        ⭐ {{ movie.rating }}
+                        &nbsp; • &nbsp;
+                        Popularity {{ movie.popularity }}
+                    </small>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     RECOMMENDATIONS
+     ===================================================== -->
+
+{% if recommendations %}
+
+<section
+    id="recommendations"
+    class="movie-section"
+>
+
+    <div class="section-header">
+
+        <div>
+
+            <span class="section-label">
+                AI RESULTS
+            </span>
+
+            <h2>
+                🤖 Recommendations for
+                "{{ movie }}"
+            </h2>
+
+        </div>
+
+    </div>
+
+
+    <div class="movies">
+
+        {% for movie in recommendations %}
+
+        <div
+            class="movie-card"
+            data-movie-id="{{ movie.id or '' }}"
+        >
+
+            {% if movie.poster_path %}
+
+            <img
+                src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}"
+                alt="{{ movie.title }}"
+                class="movie-poster"
+            >
+
+            {% else %}
+
+            <div class="no-poster">
+                🎬
+                <span>No Poster</span>
+            </div>
+
+            {% endif %}
+
+
+            <div class="movie-info">
+
+                <h3>
+                    {{ movie.title }}
+                </h3>
+
+
+                <div class="rating">
+                    ⭐ {{ movie.rating }}
+                </div>
+
+
+                {% if movie.release_date %}
+
+                <p class="year">
+                    📅 {{ movie.release_date[:4] }}
+                </p>
+
+                {% endif %}
+
+
+                {% if movie.genres %}
+
+                <p class="genres">
+                    🎭 {{ movie.genres }}
+                </p>
+
+                {% endif %}
+
+
+                {% if movie.similarity is defined %}
+
+                <p class="similarity">
+                    🎯 Content Match:
+                    {{ movie.similarity }}%
+                </p>
+
+                {% endif %}
+
+
+                {% if movie.hybrid_score is defined %}
+
+                <p class="ai-score">
+                    🤖 AI Score:
+                    {{ movie.hybrid_score }}%
+                </p>
+
+                {% endif %}
+
+
+                {% if movie.reason %}
+
+                <p class="recommendation-reason">
+
+                    💡
+
+                    <strong>
+                        Why recommended:
+                    </strong>
+
+                    <br>
+
+                    {{ movie.reason }}
+
+                </p>
+
+                {% endif %}
+
+
+                {% if movie.overview %}
+
+                <p class="overview">
+                    {{ movie.overview[:180] }}...
+                </p>
+
+                {% endif %}
+
+            </div>
+
+
+            <button
+                type="button"
+                class="watchlist-btn"
+                data-movie-id="{{ movie.id or '' }}"
+                data-movie-title="{{ movie.title }}"
+            >
+                ♡ Add to Watchlist
+            </button>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+
+{% elif movie %}
+
+<section class="not-found">
+
+    <h2>
+        😕 Movie not found
+    </h2>
+
+    <p>
+        Try another movie title.
+    </p>
+
+</section>
+
+{% endif %}
+
+
+
+<!-- =====================================================
+     WATCHLIST
+     ===================================================== -->
+
+<section
+    id="watchlist"
+    class="movie-section watchlist-section"
+>
+
+    <div class="section-header">
+
+        <div>
+
+            <span class="section-label">
+                YOUR COLLECTION
+            </span>
+
+            <h2>
+                ❤️ My Watchlist
+            </h2>
+
+        </div>
+
+    </div>
+
+
+    <div
+        id="watchlist-container"
+        class="movies"
+    ></div>
+
+
+    <p
+        id="empty-watchlist"
+        class="empty-watchlist"
+    >
+        Your watchlist is empty.
+    </p>
+
+</section>
+
+
+</div>
+
+</main>
+
+
+
+<!-- =====================================================
+     MOVIE DETAILS MODAL
+     ===================================================== -->
+
+<div
+    id="movie-modal"
+    class="movie-modal"
+>
+
+    <div class="modal-content">
+
+        <button
+            type="button"
+            id="close-modal"
+            class="close-button"
+            aria-label="Close movie details"
+        >
+            ×
+        </button>
+
+        <div id="movie-details"></div>
+
+    </div>
+
+</div>
+
+
+
+<script
+    src="{{ url_for('static', filename='js/script.js') }}"
+></script>
+
+
+</body>
+
+</html>
